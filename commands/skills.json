@@ -1,0 +1,13 @@
+{
+    "levels": [
+        "Beginner",
+        "Advanced",
+        "Expert"
+    ],
+    "list": [
+        {
+            "name": "Java",
+            "color": "#00ff00"
+        }
+    ]
+}
