@@ -1,4 +1,4 @@
-import { Collection, EmbedBuilder, PermissionsBitField, RoleManager, SlashCommandBuilder } from 'discord.js';
+import { EmbedBuilder, PermissionsBitField, SlashCommandBuilder } from 'discord.js';
 import fs from 'fs';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -14,8 +14,7 @@ export default {
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('info')
-				.setDescription('Description of how this Bot works')
-		)
+				.setDescription('Description of how this Bot works'))
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('add')
@@ -31,9 +30,9 @@ export default {
 						.setDescription('Select your Level')
 						.setRequired(false)
 						.addChoices(
-							{name: 'Beginner', value: '1'},
-							{name: 'Advanced', value: '2'},
-							{name: 'Expert', value: '3'})))
+							{name: 'Beginner', value: '0'},
+							{name: 'Advanced', value: '1'},
+							{name: 'Expert', value: '2'})))
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('remove')
@@ -102,7 +101,6 @@ export default {
 								.setMinLength(7)
 								.setMaxLength(7)
 								.setRequired(true)))),
-
 	async execute(interaction) {
 		switch (interaction.options.getSubcommandGroup()){
 		default:
@@ -114,6 +112,7 @@ export default {
 			case 'remove':
 				return removeSkill(interaction);
 			}
+			break;
 		case 'list':
 				switch (interaction.options.getSubcommand()) {
 				case 'all':
@@ -123,6 +122,7 @@ export default {
 				case 'remove':
 					return removeSkillFromList(interaction, PermissionsBitField.Flags.ManageRoles);
 				}
+				break;
 		case 'config':
 			switch (interaction.options.getSubcommand()){
 			case 'color':
@@ -139,7 +139,7 @@ function addSkill(interaction, permission = null) {
 	}
 
 	const rawSkill = interaction.options.getString('skill');
-	const level = parseInt(interaction.options.getString('level')) || 1;
+	const level = parseInt(interaction.options.getString('level')) || 0;
 	const data = JSON.parse(fs.readFileSync(skillConfigFile));
 	const list = data.list;
 	const skill = `${rawSkill} [${data.levels[level]}]`;
@@ -259,7 +259,9 @@ function setColor(interaction, permission = null) {
 	data.list.find(e => e.name === skill).color = color;
 	fs.writeFileSync(skillConfigFile, JSON.stringify(data, null, 4));
 
-	new RoleManager(interaction.guild).edit(interaction.guild.roles.cache.find(e => e.name === skill), { color: color }).then(r => )
+	for (let i = 0; i<data.levels.length; i++){
+		interaction.guild.roles.cache.find(e => e.name.includes(`${skill} [${data.levels[i]}]`)).edit({color: color});
+	}
 	interaction.reply({content: `Color of Skill ${skill} has changed`, ephemeral: true})
 }
 
